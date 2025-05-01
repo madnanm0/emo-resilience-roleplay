@@ -1,19 +1,23 @@
 import streamlit as st
 from openai import OpenAI
-import openai  # Required for catching specific OpenAI exceptions
+import openai
 import time
 
+# Page settings
 st.set_page_config(page_title="EMO – Emotional Resilience Roleplay", layout="centered")
 
+# Title and instructions
 st.title("EMO – Emotional Resilience Roleplay 🌱")
 st.markdown("**Helping you build emotional strength through AI-powered storytelling.**")
 
+# Initialize OpenAI client
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# Initialize cooldown tracking
+# Track last submission time to manage cooldown
 if "last_submit_time" not in st.session_state:
     st.session_state.last_submit_time = 0
 
+# Emotional roleplay scenarios
 scenarios = {
     "You were rejected from a dream opportunity.": [
         "Blame yourself and feel worthless",
@@ -35,9 +39,11 @@ scenarios = {
     ]
 }
 
+# User input section
 scenario = st.selectbox("Choose a scenario to explore:", list(scenarios.keys()))
 user_choice = st.radio("What would you do?", scenarios[scenario])
 
+# Submission handler
 if st.button("Submit"):
     now = time.time()
     if now - st.session_state.last_submit_time < 60:
@@ -53,7 +59,7 @@ Respond with empathy, explain the likely emotion, and suggest one CBT-based copi
 """
             try:
                 response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4",
                     messages=[{"role": "user", "content": prompt}]
                 )
                 st.subheader("🧠 EMO's Reflection")
