@@ -1,6 +1,7 @@
 import streamlit as st
 from openai import OpenAI
 import openai  # Required for catching specific OpenAI exceptions
+import time
 
 st.set_page_config(page_title="EMO – Emotional Resilience Roleplay", layout="centered")
 
@@ -8,6 +9,10 @@ st.title("EMO – Emotional Resilience Roleplay 🌱")
 st.markdown("**Helping you build emotional strength through AI-powered storytelling.**")
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+# Initialize cooldown tracking
+if "last_submit_time" not in st.session_state:
+    st.session_state.last_submit_time = 0
 
 scenarios = {
     "You were rejected from a dream opportunity.": [
@@ -34,25 +39,28 @@ scenario = st.selectbox("Choose a scenario to explore:", list(scenarios.keys()))
 user_choice = st.radio("What would you do?", scenarios[scenario])
 
 if st.button("Submit"):
-    with st.spinner("Processing your emotional journey..."):
-        prompt = f"""
+    now = time.time()
+    if now - st.session_state.last_submit_time < 60:
+        st.warning("⏱ Please wait at least 60 seconds before submitting again.")
+    else:
+        st.session_state.last_submit_time = now
+        with st.spinner("Processing your emotional journey..."):
+            prompt = f"""
 You are a compassionate CBT therapist AI.
 Scenario: "{scenario}"
 User's choice: "{user_choice}"
 Respond with empathy, explain the likely emotion, and suggest one CBT-based coping strategy.
 """
-        try:
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            st.subheader("🧠 EMO's Reflection")
-            st.write(response.choices[0].message.content)
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                st.subheader("🧠 EMO's Reflection")
+                st.write(response.choices[0].message.content)
 
-        except openai.RateLimitError:
-            st.error("⚠️ You've hit the OpenAI rate limit. Please wait a minute and try again.")
+            except openai.RateLimitError:
+                st.error("⚠️ You've hit the OpenAI rate limit. Please wait a minute and try again.")
 
-        except Exception as e:
-            st.error(f"🚨 An unexpected error occurred: {str(e)}")
-
-        
+            except Exception as e:
+                st.error(f"🚨 An unexpected error occurred: {str(e)}")
