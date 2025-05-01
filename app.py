@@ -41,7 +41,7 @@ User's choice: "{user_choice}"
 Respond with empathy, explain the likely emotion, and suggest one CBT-based coping strategy.
 """
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}]
         )
         st.subheader("🧠 EMO's Reflection")
