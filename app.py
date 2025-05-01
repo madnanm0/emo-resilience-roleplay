@@ -1,5 +1,6 @@
 import streamlit as st
 from openai import OpenAI
+import openai  # Required for catching specific OpenAI exceptions
 
 st.set_page_config(page_title="EMO – Emotional Resilience Roleplay", layout="centered")
 
@@ -40,9 +41,18 @@ Scenario: "{scenario}"
 User's choice: "{user_choice}"
 Respond with empathy, explain the likely emotion, and suggest one CBT-based coping strategy.
 """
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        st.subheader("🧠 EMO's Reflection")
-        st.write(response.choices[0].message.content)
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            st.subheader("🧠 EMO's Reflection")
+            st.write(response.choices[0].message.content)
+
+        except openai.RateLimitError:
+            st.error("⚠️ You've hit the OpenAI rate limit. Please wait a minute and try again.")
+
+        except Exception as e:
+            st.error(f"🚨 An unexpected error occurred: {str(e)}")
+
+        
